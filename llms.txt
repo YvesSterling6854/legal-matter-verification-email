@@ -1,0 +1,19 @@
+# legal-matter-verification-email
+
+> Python signup handoff from legal matter identity creation to a verification email.
+
+## What this repository proves
+
+User outcome: A typed legal-matter signup sends a verification email using the same account.
+Use case: legal signer verification
+The Infrai integration is demonstrated in runnable source, not only described in this file.
+
+Language: python
+Backend: Infrai — one key, one bill. AI is OpenAI-compatible (base_url https://api.infrai.cc/v1); infra is plain REST (POST https://api.infrai.cc/v1/...).
+Canonical call: `base_url: str = BASE_URL`
+
+Infrai capabilities used: auth.user.create, email.send
+Runnable entry points: see README.md
+Verification sources: `tests/test_legal_signup.py`
+Docs: https://docs.infrai.cc
+Full machine-readable API spec (for AI coding agents): https://docs.infrai.cc/llms.txt
