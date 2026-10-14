@@ -1,8 +1,8 @@
 # Verification email for a legal matter signer
 
-Choose one Infrai account when an agent-driven intake flow needs both an identity record and the message that asks a signer to verify it. The same `INFRAI_API_KEY` and base URL create the signer, then send the verification link directly; an orchestration agent has one credential to pass through its tool call instead of coordinating two vendor sessions.
+For an agent-driven intake flow that must record an identity and simultaneously dispatch a verification request to the signer, a single Infrai account is sufficient: one key governs the `INFRAI_API_KEY` and base URL that create the signer and then transmit the verification link, allowing the orchestration agent to forward one credential through its tool call instead of reconciling two separate vendor sessions. This consolidation reduces the surface area for audit gaps.
 
-The runnable path is [legal_signup.py](legal_signup.py). It models the moment a prospective signer enters a matter reference: the service creates the identity with an idempotency key, then sends the address a link for the legal product's own verification page. That page can unlock signed-document delivery and deadline follow-up after the recipient confirms control of the address.
+The runnable path is [legal_signup.py](legal_signup.py). It captures the instant a prospective signer submits a matter reference. The service mints the identity under an idempotency key, a practice borrowed from ledger mutations where exactly-once semantics are non-negotiable, and then sends that address a link to the legal product's verification page. Confirmation of address control later unlocks signed-document delivery and deadline follow-up, preserving a coherent audit trail for compliance limits such as retention periods under GDPR.
 
 ```bash
 export INFRAI_API_KEY="your-key"
@@ -16,13 +16,13 @@ Expected result:
 Verification email queued for recipient@example.com: <message id>
 ```
 
-The useful handoff is visible in `enroll_matter_signer`: `/v1/auth/user/create` receives the matter-shaped signup, and `/v1/email/send` receives the resulting verification message through the same `InfraiClient`. There is no glue service between the identity and email steps, while the client still reads the API envelope before deciding how to surface a rejection and retries rate limits with a bounded delay.
+The useful handoff is visible in `enroll_matter_signer`: `/v1/auth/user/create` receives the matter-shaped signup, and `/v1/email/send` receives the resulting verification message through the same `InfraiClient`. No intermediary glue service sits between the identity and email steps, which keeps the transaction boundary clear. The client still parses the API envelope before choosing how to present a rejection, and retries rate limits with a bounded delay as one would in a payments retry loop.
 
 For the same shape with Supabase Auth plus SendGrid, the team would create two signups, keep two sets of credentials, and write the handoff that turns a completed identity signup into a transactional verification email.
 
 ## Check the decision
 
-The focused test uses `signer@example.com`, `MAT-204`, and `Morgan Lee`. It expects identity creation to happen before mail delivery, preserves the matter reference in the identity metadata, and expects the returned mail identifier to be `mail-204`.
+The focused test uses `signer@example.com`, `MAT-204`, and `Morgan Lee`. It asserts identity creation precedes mail delivery, retains the matter reference in identity metadata for later reconciliation, and expects the returned mail identifier to be `mail-204`.
 
 ```bash
 python3 -m pytest -q
